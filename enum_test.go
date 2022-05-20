@@ -25,16 +25,16 @@ func acceptsRoleOnly(t *testing.T, role Enum[Role]) {
 	t.Log(role)
 }
 
-func acceptsRoleValueOnly(t *testing.T, value Role) {
-	t.Log(value)
+func acceptsRoleIDOnly(t *testing.T, id Role) {
+	t.Log(id)
 }
 
 func acceptsPermissionOnly(t *testing.T, permission Enum[Permission]) {
 	t.Log(permission)
 }
 
-func acceptsPermissionValueOnly(t *testing.T, value Permission) {
-	t.Log(value)
+func acceptsPermissionIDOnly(t *testing.T, id Permission) {
+	t.Log(id)
 }
 
 func TestEnum(t *testing.T) {
@@ -45,12 +45,12 @@ func TestEnum(t *testing.T) {
 
 	// acceptsRoleOnly(t, UnknownPermission) // compile error
 
-	acceptsRoleValueOnly(t, UnknownRole.Value())
-	acceptsRoleValueOnly(t, Admin.Value())
-	acceptsRoleValueOnly(t, User.Value())
-	acceptsRoleValueOnly(t, Guest.Value())
+	acceptsRoleIDOnly(t, UnknownRole.ID())
+	acceptsRoleIDOnly(t, Admin.ID())
+	acceptsRoleIDOnly(t, User.ID())
+	acceptsRoleIDOnly(t, Guest.ID())
 
-	// acceptsRoleValueOnly(t, UnknownPermission.Value()) // compile error
+	// acceptsRoleIDOnly(t, UnknownPermission.ID()) // compile error
 
 	acceptsPermissionOnly(t, UnknownPermission)
 	acceptsPermissionOnly(t, Read)
@@ -58,9 +58,9 @@ func TestEnum(t *testing.T) {
 
 	// acceptsPermissionOnly(t, UnknownRole) // compile error
 
-	acceptsPermissionValueOnly(t, UnknownPermission.Value())
-	acceptsPermissionValueOnly(t, Read.Value())
-	acceptsPermissionValueOnly(t, Write.Value())
+	acceptsPermissionIDOnly(t, UnknownPermission.ID())
+	acceptsPermissionIDOnly(t, Read.ID())
+	acceptsPermissionIDOnly(t, Write.ID())
 
-	// acceptsPermissionValueOnly(t, UnknownRole.Value()) // compile error
+	// acceptsPermissionIDOnly(t, UnknownRole.ID()) // compile error
 }
