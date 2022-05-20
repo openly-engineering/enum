@@ -1,6 +1,7 @@
 package enum
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -63,4 +64,19 @@ func TestEnum(t *testing.T) {
 	acceptsPermissionIDOnly(t, Write.ID())
 
 	// acceptsPermissionIDOnly(t, UnknownRole.ID()) // compile error
+}
+
+func TestEnum_Overflow(t *testing.T) {
+	defer func() {
+		if r := recover(); r == nil {
+			t.Errorf("expected panic, got normal execution")
+		}
+	}()
+
+	type int8Enum int8
+
+	// We can only have 128 int8 enums.
+	for i := 0; i <= 128; i++ {
+		New[int8Enum](fmt.Sprintf("Enum%d", i))
+	}
 }
