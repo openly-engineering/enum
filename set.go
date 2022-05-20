@@ -27,18 +27,25 @@ func newInternalSet[T constraints.Integer]() *internalSet[T] {
 // set.
 func (s *internalSet[T]) Add(name string) Enum[T] {
 	if _, ok := s.ids[name]; ok {
-		panic("duplicate name in set")
+		panic("duplicate name in enum set")
 	}
 
+	// Reserve one ID for us and update nextID.
 	id := atomic.AddInt64(&s.nextID, 1)
-	id--
+	newID := id - 1
 
-	// TODO(bga): Check for integer overflow as T might be any integer type
-	// 			  (say, int8).
+	if uint64(T(newID)) != uint64(newID) {
+		// As we always increment by one, it is guaranteed that we will see the
+		// moment id wraps around. If Add() is being called by multiple threads,
+		// it is possible that some of those threads will not notice the wrap
+		// around but this does not matter as some other thread is still
+		// guaranteed to hit this panic here.
+		panic("too many enums in enum set")
+	}
 
-	s.ids[name] = id
+	s.ids[name] = newID
 
-	return &internalEnum[T]{name: name, id: T(id)}
+	return &internalEnum[T]{name: name, id: T(newID)}
 }
 
 // GetByName returns the Enum associated with the given name and type T.

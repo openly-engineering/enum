@@ -157,7 +157,7 @@ func (e *internalEnum[T]) Scan(value any) error {
 	if !ok {
 		bytes, ok := value.([]byte)
 		if !ok {
-			return fmt.Errorf("value is not a byte slice")
+			return fmt.Errorf("value is not a string or byte slice")
 		}
 
 		name = string(bytes[:])
