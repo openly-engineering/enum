@@ -43,24 +43,24 @@ func TestEnum(t *testing.T) {
 	acceptsRoleOnly(t, User)
 	acceptsRoleOnly(t, Guest)
 
-	// accepstRoleOnly(t, UnknownPermission) // compile error
+	// acceptsRoleOnly(t, UnknownPermission) // compile error
 
 	acceptsRoleValueOnly(t, UnknownRole.Value())
 	acceptsRoleValueOnly(t, Admin.Value())
 	acceptsRoleValueOnly(t, User.Value())
 	acceptsRoleValueOnly(t, Guest.Value())
 
-	// accepstRoleValueOnly(t, UnknownPermission.Value()) // compile error
+	// acceptsRoleValueOnly(t, UnknownPermission.Value()) // compile error
 
 	acceptsPermissionOnly(t, UnknownPermission)
 	acceptsPermissionOnly(t, Read)
 	acceptsPermissionOnly(t, Write)
 
-	// accepstPermissionOnly(t, UnknownRole) // compile error
+	// acceptsPermissionOnly(t, UnknownRole) // compile error
 
 	acceptsPermissionValueOnly(t, UnknownPermission.Value())
 	acceptsPermissionValueOnly(t, Read.Value())
 	acceptsPermissionValueOnly(t, Write.Value())
 
-	// accepstPermissionValueOnly(t, UnknownRole.Value()) // compile error
+	// acceptsPermissionValueOnly(t, UnknownRole.Value()) // compile error
 }
