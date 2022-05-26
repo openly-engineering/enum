@@ -1,6 +1,7 @@
 package enum
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 )
@@ -22,7 +23,7 @@ var (
 	Write             = New[Permission]("Write")   // 2
 )
 
-func acceptsRoleOnly(t *testing.T, role Enum[Role]) {
+func acceptsRoleOnly(t *testing.T, role *Enum[Role]) {
 	t.Log(role)
 }
 
@@ -30,7 +31,7 @@ func acceptsRoleIDOnly(t *testing.T, id Role) {
 	t.Log(id)
 }
 
-func acceptsPermissionOnly(t *testing.T, permission Enum[Permission]) {
+func acceptsPermissionOnly(t *testing.T, permission *Enum[Permission]) {
 	t.Log(permission)
 }
 
@@ -78,5 +79,61 @@ func TestEnum_Overflow(t *testing.T) {
 	// We can only have 128 int8 enums.
 	for i := 0; i <= 128; i++ {
 		New[int8Enum](fmt.Sprintf("Enum%d", i))
+	}
+}
+
+func TestEnum_MarshalUnmarshal(t *testing.T) {
+	data, err := json.Marshal(Guest)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	// The only way to get an actual Enum instance is by calling new. Trying to
+	// use something like "var newGuest Enum[Role]" here would not work.
+	var newGuest Enum[Role]
+	err = json.Unmarshal(data, &newGuest)
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+
+	if newGuest.Name() != Guest.Name() {
+		t.Errorf("expected %s, got %s", Guest.Name(), newGuest.Name())
+	}
+
+	if newGuest.ID() != Guest.ID() {
+		t.Errorf("expected %d, got %d", Guest.ID(), newGuest.ID())
+	}
+}
+
+func TestEnum_Switch(t *testing.T) {
+	// Unsing role pointers, which should be the common case.
+	role := Admin
+
+	switch role {
+	case UnknownRole:
+		t.Errorf("expected %s, got %s", role, UnknownRole)
+	case Admin:
+		// Just do not error out. This is what we want.
+	case User:
+		t.Errorf("expected %s, got %s", role, User)
+	case Guest:
+		t.Errorf("expected %s, got %s", role, Guest)
+	default:
+		t.Errorf("expected %s, got something else", role)
+	}
+
+	// Using IDs.
+
+	switch roleID := role.ID(); roleID {
+	case UnknownRole.ID():
+		t.Errorf("expected %d, got %d", roleID, UnknownRole.ID())
+	case Admin.ID():
+		// Just do not error out. This is what we want.
+	case User.ID():
+		t.Errorf("expected %d, got %d", roleID, User.ID())
+	case Guest.ID():
+		t.Errorf("expected %d, got %d", roleID, Guest.ID())
+	default:
+		t.Errorf("expected %d, got something else", roleID)
 	}
 }

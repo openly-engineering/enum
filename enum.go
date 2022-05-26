@@ -1,9 +1,7 @@
 package enum
 
 import (
-	"database/sql"
 	"database/sql/driver"
-	"encoding"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -13,25 +11,9 @@ import (
 
 // Enum represents a named Enum that is associaterd with an ID. Enum IDs
 // are auto-generated starting from 0 and monotonically increasing in
-// declaration order.
-type Enum[T constraints.Integer] interface {
-	Name() string
-	ID() T
-
-	// JSON support.
-	json.Marshaler
-	json.Unmarshaler
-
-	// Text support.
-	encoding.TextMarshaler
-	encoding.TextUnmarshaler
-
-	// SQL support.
-	driver.Valuer
-	sql.Scanner
-
-	// Makes sure no external package can implement this interface.
-	unimplementable()
+// declaration order. The zero value of an Enum is not valid.
+type Enum[T constraints.Integer] struct {
+	*internalEnum[T]
 }
 
 // We need to use any here because each set will have a different type. This is
@@ -49,7 +31,11 @@ func getTypeName[T any]() string {
 }
 
 // New returns a new Enum associated with the given name and type T.
-func New[T constraints.Integer](name string) Enum[T] {
+func New[T constraints.Integer](name string) *Enum[T] {
+	if name == "" {
+		panic("enum name cannot be empty")
+	}
+
 	typeName := getTypeName[T]()
 
 	var s *internalSet[T]
@@ -61,11 +47,9 @@ func New[T constraints.Integer](name string) Enum[T] {
 		s = as.(*internalSet[T])
 	}
 
-	return s.Add(name)
+	return &Enum[T]{s.Add(name)}
 }
 
-// internalEnum is the only concrete implementation of the Enum interface. It
-// holds the name and typed ID.
 type internalEnum[T constraints.Integer] struct {
 	name string
 	id   T
@@ -79,6 +63,12 @@ func (e internalEnum[T]) Name() string {
 // ID returns the numeric ID associated with this Enum instance.
 func (e internalEnum[T]) ID() T {
 	return e.id
+}
+
+// Valid returns true if the Enum is valid or false otherwise. Default Enum
+// instances are invalid. Use New to create a valid one.
+func (e *internalEnum[T]) Valid() bool {
+	return e != nil
 }
 
 // MarshalJSON implements the json.Marshaler interface.
@@ -98,16 +88,27 @@ func getIDForName[T constraints.Integer](name string) (T, error) {
 
 	s := anySet.(*internalSet[T])
 
-	id, ok := s.ids[name]
+	e, ok := s.nameEnumMap[name]
 	if !ok {
 		return defaultID, fmt.Errorf("name %s could not be found in enum set for type %s", name, typeName)
 	}
 
-	return T(id), nil
+	return e.id, nil
+}
+
+func (e *Enum[T]) createOrUpdateInternalEnum(id T, name string) {
+	if e.internalEnum == nil {
+		e.internalEnum = &internalEnum[T]{name, id}
+	} else {
+		// This is just to avoid garbage collection pressure. If we already have
+		// an internalEnum, we can just update it.
+		e.name = name
+		e.id = T(id)
+	}
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
-func (e *internalEnum[T]) UnmarshalJSON(data []byte) error {
+func (e *Enum[T]) UnmarshalJSON(data []byte) error {
 	var name string
 	if err := json.Unmarshal(data, &name); err != nil {
 		return fmt.Errorf("source should be a string, got %s", data)
@@ -118,8 +119,7 @@ func (e *internalEnum[T]) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	e.name = name
-	e.id = T(id)
+	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }
@@ -130,7 +130,7 @@ func (e internalEnum[T]) MarshalText() ([]byte, error) {
 }
 
 // UnmarshalText implements the encoding.TextUnmarshaler interface.
-func (e *internalEnum[T]) UnmarshalText(text []byte) error {
+func (e *Enum[T]) UnmarshalText(text []byte) error {
 	name := string(text)
 
 	id, err := getIDForName[T](name)
@@ -138,17 +138,18 @@ func (e *internalEnum[T]) UnmarshalText(text []byte) error {
 		return err
 	}
 
-	e.name = name
-	e.id = T(id)
+	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }
 
+// Value implements the driver.Valuer interface.
 func (e internalEnum[T]) Value() (driver.Value, error) {
 	return e.Name(), nil
 }
 
-func (e *internalEnum[T]) Scan(value any) error {
+// Scan implements the sql.Scanner interface.
+func (e *Enum[T]) Scan(value any) error {
 	if value == nil {
 		return nil
 	}
@@ -168,11 +169,12 @@ func (e *internalEnum[T]) Scan(value any) error {
 		return err
 	}
 
-	e.name = name
-	e.id = T(id)
+	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }
 
-// unimplementanle makes sure we implement the Enum interface.
-func (e internalEnum[T]) unimplementable() {}
+// String implements the fmt.Stringer interface.
+func (e internalEnum[T]) String() string {
+	return e.name
+}
