@@ -45,7 +45,7 @@ func EnumsForType[T constraints.Integer]() []*Enum[T] {
 }
 
 // New returns a new Enum associated with the given name and type T.
-func New[T constraints.Integer](name string) *Enum[T] {
+func New[T constraints.Integer](name string) Enum[T] {
 	if name == "" {
 		panic("enum name cannot be empty")
 	}
@@ -61,7 +61,7 @@ func New[T constraints.Integer](name string) *Enum[T] {
 		s = as.(*internalSet[T])
 	}
 
-	return &Enum[T]{s.Add(name)}
+	return Enum[T]{s.Add(name)}
 }
 
 type internalEnum[T constraints.Integer] struct {

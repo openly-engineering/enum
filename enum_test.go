@@ -23,7 +23,7 @@ var (
 	Write             = New[Permission]("Write")   // 2
 )
 
-func acceptsRoleOnly(t *testing.T, role *Enum[Role]) {
+func acceptsRoleOnly(t *testing.T, role Enum[Role]) {
 	t.Log(role)
 }
 
@@ -31,7 +31,7 @@ func acceptsRoleIDOnly(t *testing.T, id Role) {
 	t.Log(id)
 }
 
-func acceptsPermissionOnly(t *testing.T, permission *Enum[Permission]) {
+func acceptsPermissionOnly(t *testing.T, permission Enum[Permission]) {
 	t.Log(permission)
 }
 
@@ -104,7 +104,7 @@ func TestEnum_MarshalUnmarshal(t *testing.T) {
 }
 
 func TestEnum_Switch(t *testing.T) {
-	// Unsing role pointers, which should be the common case.
+	// Unsing role values, which should be the common case.
 	role := Admin
 
 	switch role {
