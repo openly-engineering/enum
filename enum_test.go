@@ -88,8 +88,6 @@ func TestEnum_MarshalUnmarshal(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	// The only way to get an actual Enum instance is by calling new. Trying to
-	// use something like "var newGuest Enum[Role]" here would not work.
 	var newGuest Enum[Role]
 	err = json.Unmarshal(data, &newGuest)
 	if err != nil {
@@ -135,5 +133,12 @@ func TestEnum_Switch(t *testing.T) {
 		t.Errorf("expected %d, got %d", roleID, Guest.ID())
 	default:
 		t.Errorf("expected %d, got something else", roleID)
+	}
+}
+
+func TestEnum_EnumsForType(t *testing.T) {
+	enums := EnumsForType[Role]()
+	if len(enums) != 4 {
+		t.Errorf("expected 4, got %d", len(enums))
 	}
 }

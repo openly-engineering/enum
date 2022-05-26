@@ -30,6 +30,20 @@ func getTypeName[T any]() string {
 	return tType.PkgPath() + "." + tType.Name()
 }
 
+// EnumsForType returns all enums associated with the given type T.
+func EnumsForType[T constraints.Integer]() []*Enum[T] {
+	s := setByTypeName[getTypeName[T]()]
+
+	nameEnumMap := s.(*internalSet[T]).nameEnumMap
+
+	enums := make([]*Enum[T], 0, len(nameEnumMap))
+	for _, e := range nameEnumMap {
+		enums = append(enums, &Enum[T]{e})
+	}
+
+	return enums
+}
+
 // New returns a new Enum associated with the given name and type T.
 func New[T constraints.Integer](name string) *Enum[T] {
 	if name == "" {
