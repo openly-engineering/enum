@@ -1,4 +1,4 @@
-module enum
+module github.com/bruno-ga/enum
 
 go 1.18
 
