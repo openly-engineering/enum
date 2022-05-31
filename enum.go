@@ -44,12 +44,7 @@ func EnumsForType[T constraints.Integer]() []*Enum[T] {
 	return enums
 }
 
-// New returns a new Enum associated with the given name and type T.
-func New[T constraints.Integer](name string) Enum[T] {
-	if name == "" {
-		panic("enum name cannot be empty")
-	}
-
+func getOrCreateSetForType[T constraints.Integer]() *internalSet[T] {
 	typeName := getTypeName[T]()
 
 	var s *internalSet[T]
@@ -60,6 +55,17 @@ func New[T constraints.Integer](name string) Enum[T] {
 	} else {
 		s = as.(*internalSet[T])
 	}
+
+	return s
+}
+
+// New returns a new Enum associated with the given name and type T.
+func New[T constraints.Integer](name string) Enum[T] {
+	if name == "" {
+		panic("enum name cannot be empty")
+	}
+
+	s := getOrCreateSetForType[T]()
 
 	return Enum[T]{s.Add(name)}
 }
@@ -90,50 +96,37 @@ func (e internalEnum[T]) MarshalJSON() ([]byte, error) {
 	return json.Marshal(e.Name())
 }
 
-func getIDForName[T constraints.Integer](name string) (T, error) {
+func getInternalEnumForName[T constraints.Integer](name string) (*internalEnum[T], error) {
 	typeName := getTypeName[T]()
-
-	var defaultID T
 
 	anySet, ok := setByTypeName[typeName]
 	if !ok {
-		return defaultID, fmt.Errorf("no enum set associated with type %s", typeName)
+		return nil, fmt.Errorf("no enum set associated with type %s", typeName)
 	}
 
 	s := anySet.(*internalSet[T])
 
-	e, ok := s.nameEnumMap[name]
-	if !ok {
-		return defaultID, fmt.Errorf("name %s could not be found in enum set for type %s", name, typeName)
+	var e *internalEnum[T]
+	if e = s.Get(name); e == nil {
+		return nil, fmt.Errorf("name %s could not be found in enum set for type %s", name, typeName)
 	}
 
-	return e.id, nil
-}
-
-func (e *Enum[T]) createOrUpdateInternalEnum(id T, name string) {
-	if e.internalEnum == nil {
-		e.internalEnum = &internalEnum[T]{name, id}
-	} else {
-		// This is just to avoid garbage collection pressure. If we already have
-		// an internalEnum, we can just update it.
-		e.name = name
-		e.id = T(id)
-	}
+	return e, nil
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (e *Enum[T]) UnmarshalJSON(data []byte) error {
 	var name string
-	if err := json.Unmarshal(data, &name); err != nil {
+	var err error
+
+	if err = json.Unmarshal(data, &name); err != nil {
 		return fmt.Errorf("source should be a string, got %s", data)
 	}
 
-	id, err := getIDForName[T](name)
+	e.internalEnum, err = getInternalEnumForName[T](name)
 	if err != nil {
 		return err
 	}
-
-	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }
@@ -147,12 +140,11 @@ func (e internalEnum[T]) MarshalText() ([]byte, error) {
 func (e *Enum[T]) UnmarshalText(text []byte) error {
 	name := string(text)
 
-	id, err := getIDForName[T](name)
+	var err error
+	e.internalEnum, err = getInternalEnumForName[T](name)
 	if err != nil {
 		return err
 	}
-
-	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }
@@ -178,12 +170,11 @@ func (e *Enum[T]) Scan(value any) error {
 		name = string(bytes[:])
 	}
 
-	id, err := getIDForName[T](name)
+	var err error
+	e.internalEnum, err = getInternalEnumForName[T](name)
 	if err != nil {
 		return err
 	}
-
-	e.createOrUpdateInternalEnum(id, name)
 
 	return nil
 }

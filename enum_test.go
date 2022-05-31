@@ -94,12 +94,8 @@ func TestEnum_MarshalUnmarshal(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	if newGuest.Name() != Guest.Name() {
-		t.Errorf("expected %s, got %s", Guest.Name(), newGuest.Name())
-	}
-
-	if newGuest.ID() != Guest.ID() {
-		t.Errorf("expected %d, got %d", Guest.ID(), newGuest.ID())
+	if newGuest != Guest {
+		t.Errorf("expected internalEnum pointer %p, got %p", Guest.internalEnum, newGuest.internalEnum)
 	}
 }
 

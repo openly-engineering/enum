@@ -9,15 +9,18 @@ import (
 
 // internalSet collects all enums associated with a specific type T.
 type internalSet[T constraints.Integer] struct {
-	nextID      int64 // Atomically updated.
 	nameEnumMap map[string]*internalEnum[T]
+
+	nextID      int64 // Atomically updated.
+	exhaustedID bool  // Set to true when there are no more IDs available.
 }
 
 // newInternalSet returns a new empty set.
 func newInternalSet[T constraints.Integer]() *internalSet[T] {
 	return &internalSet[T]{
-		0,
 		make(map[string]*internalEnum[T]),
+		0,
+		false,
 	}
 }
 
@@ -26,6 +29,11 @@ func newInternalSet[T constraints.Integer]() *internalSet[T] {
 // an attempt is made to add an enum with a name that already exists in the
 // set.
 func (s *internalSet[T]) Add(name string) *internalEnum[T] {
+	if s.exhaustedID {
+		// Run out of IDs.
+		panic("too many enums in enum set")
+	}
+
 	if _, ok := s.nameEnumMap[name]; ok {
 		panic("duplicate name in enum set")
 	}
@@ -34,13 +42,15 @@ func (s *internalSet[T]) Add(name string) *internalEnum[T] {
 	id := atomic.AddInt64(&s.nextID, 1)
 	newID := id - 1
 
-	if uint64(T(newID)) != uint64(newID) {
+	if T(newID) > T(id) {
 		// As we always increment by one, it is guaranteed that we will see the
 		// moment id wraps around. If Add() is being called by multiple threads,
 		// it is possible that some of those threads will not notice the wrap
 		// around but this does not matter as some other thread is still
 		// guaranteed to hit this panic here.
-		panic("too many enums in enum set")
+		//
+		// We mark IDs as exhausthed as the one we just generated is valid.
+		s.exhaustedID = true
 	}
 
 	e := &internalEnum[T]{
@@ -49,6 +59,17 @@ func (s *internalSet[T]) Add(name string) *internalEnum[T] {
 	}
 
 	s.nameEnumMap[name] = e
+
+	return e
+}
+
+// Get returns the enum associated with the given name. If no enum with the
+// given name exists, this returns nil.
+func (s *internalSet[T]) Get(name string) *internalEnum[T] {
+	e, ok := s.nameEnumMap[name]
+	if !ok {
+		return nil
+	}
 
 	return e
 }
