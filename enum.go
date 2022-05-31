@@ -30,31 +30,6 @@ func getTypeName[T any]() string {
 	return tType.PkgPath() + "." + tType.Name()
 }
 
-// EnumsForType returns all enums associated with the given type T.
-func EnumsForType[T constraints.Integer]() []*Enum[T] {
-	s := setByTypeName[getTypeName[T]()]
-
-	nameEnumMap := s.(*internalSet[T]).nameEnumMap
-
-	enums := make([]*Enum[T], 0, len(nameEnumMap))
-	for _, e := range nameEnumMap {
-		enums = append(enums, &Enum[T]{e})
-	}
-
-	return enums
-}
-
-// EnumByName returns the enum associated with the given name. If there is no
-// such enumn, a non-nil error is returned.
-func EnumByName[T constraints.Integer](name string) (*Enum[T], error) {
-	e, err := getInternalEnumForName[T](name)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Enum[T]{e}, nil
-}
-
 func getOrCreateSetForType[T constraints.Integer]() *internalSet[T] {
 	typeName := getTypeName[T]()
 
@@ -79,6 +54,31 @@ func New[T constraints.Integer](name string) Enum[T] {
 	s := getOrCreateSetForType[T]()
 
 	return Enum[T]{s.Add(name)}
+}
+
+// EnumsByType returns all enums associated with the given type T.
+func EnumsByType[T constraints.Integer]() []Enum[T] {
+	s := setByTypeName[getTypeName[T]()]
+
+	nameEnumMap := s.(*internalSet[T]).nameEnumMap
+
+	enums := make([]Enum[T], 0, len(nameEnumMap))
+	for _, e := range nameEnumMap {
+		enums = append(enums, Enum[T]{e})
+	}
+
+	return enums
+}
+
+// EnumByTyepAndName returns the enum associated with the given name. If there is no
+// such enum, a non-nil error is returned.
+func EnumByTypeAndName[T constraints.Integer](name string) (Enum[T], error) {
+	e, err := getInternalEnumForName[T](name)
+	if err != nil {
+		return Enum[T]{}, err
+	}
+
+	return Enum[T]{e}, nil
 }
 
 type internalEnum[T constraints.Integer] struct {

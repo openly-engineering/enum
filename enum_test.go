@@ -10,19 +10,19 @@ type Role int
 type RoleEnum = Enum[Role] // Just to make references cleaner.
 
 var (
-	UnknownRole = New[Role]("Unknown") // 0
-	Admin       = New[Role]("Admin")   // 1
-	User        = New[Role]("User")    // 2
-	Guest       = New[Role]("Guest")   // 3
+	UnknownRole = RoleEnum(New[Role]("Unknown")) // 0
+	Admin       = RoleEnum(New[Role]("Admin"))   // 1
+	User        = RoleEnum(New[Role]("User"))    // 2
+	Guest       = RoleEnum(New[Role]("Guest"))   // 3
 )
 
 type Permission int
 type PermissionEnum = Enum[Permission] // Just to make references cleaner.
 
 var (
-	UnknownPermission = New[Permission]("Unknown") // 0
-	Read              = New[Permission]("Read")    // 1
-	Write             = New[Permission]("Write")   // 2
+	UnknownPermission = PermissionEnum(New[Permission]("Unknown")) // 0
+	Read              = PermissionEnum(New[Permission]("Read"))    // 1
+	Write             = PermissionEnum(New[Permission]("Write"))   // 2
 )
 
 func acceptsRoleOnly(t *testing.T, role RoleEnum) {
@@ -135,7 +135,7 @@ func TestEnum_Switch(t *testing.T) {
 }
 
 func TestEnum_EnumsForType(t *testing.T) {
-	enums := EnumsForType[Role]()
+	enums := EnumsByType[Role]()
 	if len(enums) != 4 {
 		t.Errorf("expected 4, got %d", len(enums))
 	}
