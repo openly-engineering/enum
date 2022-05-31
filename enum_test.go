@@ -7,6 +7,7 @@ import (
 )
 
 type Role int
+type RoleEnum = Enum[Role] // Just to make references cleaner.
 
 var (
 	UnknownRole = New[Role]("Unknown") // 0
@@ -16,6 +17,7 @@ var (
 )
 
 type Permission int
+type PermissionEnum = Enum[Permission] // Just to make references cleaner.
 
 var (
 	UnknownPermission = New[Permission]("Unknown") // 0
@@ -23,7 +25,7 @@ var (
 	Write             = New[Permission]("Write")   // 2
 )
 
-func acceptsRoleOnly(t *testing.T, role Enum[Role]) {
+func acceptsRoleOnly(t *testing.T, role RoleEnum) {
 	t.Log(role)
 }
 
@@ -31,7 +33,7 @@ func acceptsRoleIDOnly(t *testing.T, id Role) {
 	t.Log(id)
 }
 
-func acceptsPermissionOnly(t *testing.T, permission Enum[Permission]) {
+func acceptsPermissionOnly(t *testing.T, permission PermissionEnum) {
 	t.Log(permission)
 }
 

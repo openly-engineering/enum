@@ -44,6 +44,17 @@ func EnumsForType[T constraints.Integer]() []*Enum[T] {
 	return enums
 }
 
+// EnumByName returns the enum associated with the given name. If there is no
+// such enumn, a non-nil error is returned.
+func EnumByName[T constraints.Integer](name string) (*Enum[T], error) {
+	e, err := getInternalEnumForName[T](name)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Enum[T]{e}, nil
+}
+
 func getOrCreateSetForType[T constraints.Integer]() *internalSet[T] {
 	typeName := getTypeName[T]()
 
