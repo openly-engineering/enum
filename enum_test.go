@@ -7,7 +7,7 @@ import (
 )
 
 type Role int
-type RoleEnum = Enum[Role] // Just to make references cleaner.
+type RoleEnum Enum[Role] // Just to make references cleaner.
 
 var (
 	UnknownRole = RoleEnum(New[Role]("Unknown")) // 0
@@ -17,7 +17,7 @@ var (
 )
 
 type Permission int
-type PermissionEnum = Enum[Permission] // Just to make references cleaner.
+type PermissionEnum Enum[Permission] // Just to make references cleaner.
 
 var (
 	UnknownPermission = PermissionEnum(New[Permission]("Unknown")) // 0
@@ -90,7 +90,7 @@ func TestEnum_MarshalUnmarshal(t *testing.T) {
 		t.Fatalf("unexpected error: %s", err)
 	}
 
-	var newGuest Enum[Role]
+	var newGuest RoleEnum
 	err = json.Unmarshal(data, &newGuest)
 	if err != nil {
 		t.Fatalf("unexpected error: %s", err)
