@@ -13,7 +13,7 @@ import (
 // are auto-generated starting from 0 and monotonically increasing in
 // declaration order. The zero value of an Enum is not valid. It is safe
 // to use this type to create other types (type OtherType Enum[MyEnumType]) as
-// it does not implement any methods itself and, instead, delegate all
+// it does not implement any methods itself and, instead, delegates all
 // methods to embedded types.
 type Enum[T constraints.Integer] struct {
 	// As internalEnumWrapper is not a pointer, it will never be nil so we use
@@ -204,7 +204,7 @@ func (e *internalEnumWrapper[T]) Scan(value any) error {
 			return fmt.Errorf("value is not a string or byte slice")
 		}
 
-		name = string(bytes[:])
+		name = string(bytes)
 	}
 
 	var err error
