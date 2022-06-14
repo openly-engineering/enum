@@ -158,6 +158,12 @@ func TestEnum_MarshalUnmarshal(t *testing.T) {
 	if newGuest != Guest {
 		t.Errorf("expected internalEnum pointer %p, got %p", Guest.internalEnum, newGuest.internalEnum)
 	}
+	if newGuest.ID() != Guest.ID() {
+		t.Errorf("expected ID %d, got %d", Guest.ID(), newGuest.ID())
+	}
+	if newGuest.String() != Guest.String() {
+		t.Errorf("expected String %s, got %s", Guest.String(), newGuest.String())
+	}
 }
 
 func TestEnum_Switch(t *testing.T) {
