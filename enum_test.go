@@ -53,7 +53,19 @@ func (p OldMethodPermission) String() string {
 
 // New method role enum.
 type Role int
-type RoleEnum Enum[Role] // Just to allow cleaner references.
+
+// Just to allow cleaner references.
+//
+// Lets assume the Role type above is defined in a package called "accounts".
+// Without the type below, functions that would take an enum of type Role would
+// need to be written like:
+//
+// func DoSomethingWithRole(r enum.Role[accounts.Role]) {}
+//
+// With the type below, the function can be written like:
+//
+// func DoSomethingWithRole(accounts.RoleEnum) {}
+type RoleEnum Enum[Role]
 
 var (
 	UnknownRole = RoleEnum(New[Role]("Unknown")) // 0
